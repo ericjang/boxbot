@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SOURCES=protobuf/boxbot.proto
+GRPC_ROOT=/contrib/projects/grpc
+PROTOC_ROOT=/contrib/projects/protobuf
+
+PROTOC=${PROTOC_ROOT}/bin/protoc
+
+# C++
+protoc --cpp_out=build --proto_path=protobuf ${SOURCES}
+protoc --grpc_out=build --proto_path=protobuf --plugin=protoc-gen-grpc=$GRPC_ROOT/bin/grpc_cpp_plugin ${SOURCES}
+
+# PYTHON
+protoc --python_out=scripts --grpc_out=scripts --plugin=protoc-gen-grpc=$GRPC_ROOT/bin/grpc_python_plugin --proto_path=protobuf ${SOURCES}
+

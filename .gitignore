@@ -1,0 +1,7 @@
+Makefile
+boxbot
+*.pro.user
+*.o
+*.pb.*
+*_pb2.py
+*.pyc

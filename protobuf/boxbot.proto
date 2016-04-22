@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package boxbot;
+
+// inspired by Caffe
+
+message ObservationData {
+  float time = 1;
+  int32 channels = 2;
+  int32 height = 3;
+  int32 width = 4;
+  // the actual image data, in bytes
+  bytes data = 5;
+  // Optionally, the datum could also hold float data.
+  repeated float float_data = 6;
+  // If true data contains an encoded image that need to be decoded
+  //bool encoded = 7;
+}
+
+message ControlData {
+	repeated float control_data = 1;
+}
+
+// gRPC 
+
+service RPCPolicy {
+	// get controls, given current observation data
+	rpc GetControls (ObservationData) returns (ControlData) {}
+}
