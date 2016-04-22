@@ -1,7 +1,8 @@
 # BoxBot Simulator
 ==============
 
-BoxBot is a C++ framework for embodied robot simulation in 2D environments.
+BoxBot is a C++ framework for embodied robot simulation in 2D environments. 
+This is currently a work in progress - not all the functionality is supported yet.
 
 <!-- TODO : handdrawn boxbot here -->
 
