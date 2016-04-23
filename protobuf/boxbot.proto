@@ -21,9 +21,28 @@ message ControlData {
 	repeated float control_data = 1;
 }
 
+// potentially could have params for multiple
+// agents, but handle this later
+message ExperimentDef {
+  string robot = 1; // which robot to use
+}
+
+message SimParams {
+  int32 x_dim=1;
+  int32 u_dim=2;
+}
+
 // gRPC 
 
 service RPCPolicy {
 	// get controls, given current observation data
 	rpc GetControls (ObservationData) returns (ControlData) {}
+}
+
+service RPCSim {
+  // applies given controls, returns new observation
+  rpc step (ControlData) returns (ObservationData) {}
+  // initializes the simulation, returns observation dimension
+  // and control dimension
+  rpc init (ExperimentDef) returns (SimParams) {}
 }

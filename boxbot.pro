@@ -35,7 +35,9 @@ HEADERS += \
     build/helloworld.pb.h \
     build/helloworld.grpc.pb.h \
     test/greetertest.h \
-    src/policy/rpcpolicy.h \
+    src/policy/rpcclientpolicy.h \
+    src/simserver.h \
+    src/simapp.h
 
 SOURCES += \
     build/boxbot.pb.cc \
@@ -43,7 +45,9 @@ SOURCES += \
     build/helloworld.pb.cc \
     build/helloworld.grpc.pb.cc \
     test/greetertest.cpp \
-    src/policy/rpcpolicy.cpp \
+    src/policy/rpcclientpolicy.cpp \
+    src/simserver.cpp \
+    src/simapp.cpp
 
 # OTHER STUFF
 HEADERS += include/boxbot.h \
@@ -70,8 +74,6 @@ SOURCES += \
     src/mathutils.cpp \
     src/policy/policy.cpp \
     src/policy/testpolicy.cpp \
-
-
 
 OTHER_FILES += protobuf/boxbot.proto \
                README.md

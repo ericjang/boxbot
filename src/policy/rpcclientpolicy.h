@@ -12,10 +12,10 @@ using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
 
-class RPCPolicy : public Policy
+class RPCClientPolicy : public Policy
 {
 public:
-    RPCPolicy(uint xdim, uint udim, std::shared_ptr<Channel> channel);
+    RPCClientPolicy(uint xdim, uint udim, std::shared_ptr<Channel> channel);
     const ControlData computeControls(const ObservationData &data);
 protected:
     std::unique_ptr<boxbot::RPCPolicy::Stub> m_stub;

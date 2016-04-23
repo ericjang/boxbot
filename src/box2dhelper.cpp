@@ -62,7 +62,7 @@ b2Joint* makePrismaticJoint(b2World* world, b2Body* a, b2Body *b)
    jointDef.lowerTranslation = -5.f;
    jointDef.upperTranslation = 5.f; // muscles can only contract
    jointDef.enableLimit = true;
-   jointDef.maxMotorForce = 100.0f;
+   jointDef.maxMotorForce = 300.0f;
    jointDef.motorSpeed = 0.0f;
    jointDef.enableMotor = true;
    return world->CreateJoint(&jointDef);

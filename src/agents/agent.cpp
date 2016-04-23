@@ -1,6 +1,6 @@
 #include "agent.h"
 #include "box2dhelper.h"
-#include "policy/rpcpolicy.h"
+#include "policy/rpcclientpolicy.h"
 #include <vector>
 
 Agent::Agent()

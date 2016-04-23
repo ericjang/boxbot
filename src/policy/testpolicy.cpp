@@ -15,7 +15,7 @@ const ControlData TestPolicy::computeControls(const ObservationData &data)
     ControlData cdata;
     for (int i=0; i<m_udim; i++)
     {
-        float u = (i%2==0) ? 20.*sin(data.time()) : 0.;
+        float u = (i%2==1) ? 20.*sin(data.time()) : 0.;
         cdata.add_control_data(u);
     }
     return cdata;

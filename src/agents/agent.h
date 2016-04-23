@@ -35,13 +35,15 @@ public:
     std::vector<b2Joint*> getJoints();
     void setPolicy(Policy* p);
 
+    // specific to each robot
+    virtual void applyControls(const ControlData& data);
+
+
 protected:
     std::vector<b2Body*> m_bodies;
     std::vector<b2Joint*> m_joints;
     Policy *m_policy;
 
-    // specific to each robot
-    virtual void applyControls(const ControlData& data);
 
 };
 

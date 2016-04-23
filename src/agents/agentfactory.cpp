@@ -49,8 +49,8 @@ Agent *makeTentacle(b2World *world, xform_t xf, int n_segments)
             for (int j=0; j<2; j++)
             {
                 int k = j*2-1; // -1, 1 for dorsal / ventral sides
-                xform_t p_attach = toGlobal(px, xform(0,k*.8*psize.y,0));
-                xform_t c_attach = toGlobal(cx, xform(0,k*.8*csize.y,0));
+                xform_t p_attach = toGlobal(px, xform(0,k*.9*psize.y,0));
+                xform_t c_attach = toGlobal(cx, xform(0,k*.9*csize.y,0));
                 agent->addJoint(makeMuscle(world,pbody,cbody,p_attach,c_attach));
             }
         }
@@ -60,7 +60,7 @@ Agent *makeTentacle(b2World *world, xform_t xf, int n_segments)
         // subsequent segments have fixed xform relative to previous segment
         px=cx;
         psize=csize;
-        lx=xform(3./2*hx, 0, 0);
+        lx=xform(1.4*hx, 0, 0);
     }
 
     return agent;

@@ -13,7 +13,9 @@ public:
     ~MultiAgent();
     // add child agent
     void addAgent(Agent *agent);
+#if 0
     void step(float time);
+#endif
 protected:
     std::vector<Agent *> m_agents;
 };
