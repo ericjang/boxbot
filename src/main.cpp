@@ -25,8 +25,8 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        run_app();
-//        run_server();
+//        run_app();
+        run_server();
     }
     else if (argc == 2)
     {

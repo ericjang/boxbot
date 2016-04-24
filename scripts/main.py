@@ -12,13 +12,12 @@ import ipdb as pdb
 
 (x_dim, u_dim) = sim.init(p.E,host="localhost",port=50051) # start C++ sim
 
+
+import time
 # step the simulation forward a couple times
-for i in range(10):
+for i in range(200):
+	time.sleep(1./60)
 	sim.step(range(13))
-
-
-
-
 
 pdb.set_trace()
 

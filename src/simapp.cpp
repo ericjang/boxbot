@@ -6,12 +6,15 @@
 #include "debugdraw.h"
 #include <grpc++/grpc++.h>
 #include "agents/agentfactory.h"
+#include "agents/agent.h"
+#include <thread>
+#include <mutex>
 
 const int framePeriod = 16;
 int mainWindow;
 
-#define WIDTH 640
-#define HEIGHT 540
+#define WIDTH 320
+#define HEIGHT 240
 
 int32 width=WIDTH;
 int32 height=HEIGHT;
@@ -25,14 +28,14 @@ Sim *sim;
 
 DebugDraw draw;
 
+// forward decl.
+static void redraw();
+
 static void Timer(int)
 {
-    glutSetWindow(mainWindow);
+    redraw();
 
-    // update simulation
-    sim->step();
-
-    glutPostRedisplay();
+    // schedule another redraw
     glutTimerFunc(framePeriod, Timer, 0);
 }
 
@@ -95,14 +98,6 @@ static void drawGL()
 
 }
 
-static void redraw()
-{
-    glutSetWindow(mainWindow);
-    glutPostRedisplay();
-}
-
-
-
 /*
  * TODO : refer to http://stackoverflow.com/questions/3191978/how-to-use-glut-opengl-to-render-to-a-file
 Take screenshot with glReadPixels and save to a file in PPM format.
@@ -117,6 +112,8 @@ Take screenshot with glReadPixels and save to a file in PPM format.
     Contents of this buffer do not matter. May be NULL, in which case it is initialized.
     You must `free` it when you won't be calling this function anymore.
 */
+
+//std::mutex mtx; // pixel mutex
 static GLubyte *pixels = NULL;
 static void screenshot_ppm(const char *filename, unsigned int width, unsigned int height,
          GLenum format, unsigned int format_nchannels, GLubyte **pixels) {
@@ -135,14 +132,16 @@ static void screenshot_ppm(const char *filename, unsigned int width, unsigned in
     fclose(f);
 }
 
-static const GLenum FORMAT = GL_RGBA;
-static const GLuint format_nchannels = 4;
+static const GLenum FORMAT = GL_RGB;
+static const GLuint format_nchannels = 3;
 
 void screenshot()
 {
     // need a cleaner way to do this
     screenshot_ppm("fubar.ppm", WIDTH, HEIGHT, FORMAT, format_nchannels, &pixels);
+    std::cout << "done\n" << std::endl;
 }
+
 
 
 static void Keyboard(unsigned char key, int x, int y)
@@ -174,31 +173,6 @@ void setupGlut()
     glutDisplayFunc(drawGL);
     glutKeyboardFunc(Keyboard);
 
-//    glutSetWindow(mainWindow);
-//    glutPostRedisplay();
-}
-
-void setupSim(const boxbot::ExperimentDef *edef)
-{
-
-
-    // construct agent
-    Agent *agent;
-    if (edef->robot().compare("octoarm"))
-        agent=makeOctoArmAgent(sim->getWorld(), xform(0,4,0));
-    else if (edef->robot().compare("walker"))
-        agent=makeWalkerAgent(sim->getWorld(), xform(0,3,0));
-    else
-        agent=makePolypAgent(sim->getWorld(), xform(0,0.3, b2_pi/2));
-
-    sim->addAgent(agent);
-}
-
-// use glutMainLoop & TimerFunc to drive sim & drawing
-void run_app()
-{
-    sim = new Sim();
-
     uint32 flags = 0;
     flags += 1			* b2Draw::e_shapeBit;
     //flags += 1			* b2Draw::e_jointBit;
@@ -210,17 +184,125 @@ void run_app()
     draw.SetFlags(flags);
 
     sim->getWorld()->SetDebugDraw(&draw);
-    // add agents and policy
 
+}
+
+//
+// SIM SERVER CALLBACK FNS
+//
+
+std::mutex mtx;
+std::condition_variable cv;
+static int do_redraw = 0;
+
+void setupSim(const boxbot::ExperimentDef *edef, boxbot::SimParams *sp)
+{
+    // notify redraw
+    {
+        std::lock_guard<std::mutex> lk(mtx);
+        do_redraw=1;
+    }
+    cv.notify_one();
+
+    // wait for GL thread to refresh glReadPixels
+    {
+        std::unique_lock<std::mutex> lk(mtx);
+        cv.wait(lk);
+    }
+
+    // construct agent
+    Agent *agent;
+    if (edef->robot().compare("octoarm"))
+        agent=makeOctoArmAgent(sim->getWorld(), xform(0,4,0));
+    else if (edef->robot().compare("walker"))
+        agent=makeWalkerAgent(sim->getWorld(), xform(0,3,0));
+    else
+        agent=makePolypAgent(sim->getWorld(), xform(0,0.3, b2_pi/2));
+
+    sim->addAgent(agent);
+    sp->set_u_dim(agent->getJoints().size());
+
+    ObservationData* x=sp->mutable_x();
+    x->set_width(width);
+    x->set_height(height);
+    x->set_channels(format_nchannels);
+    x->set_data(pixels, format_nchannels * sizeof(GLubyte) * width * height);
+}
+
+static void redraw()
+{
+    // wait until do_redraw=1, then redraw once
+    std::unique_lock<std::mutex> lk(mtx);
+    cv.wait(lk);
+
+    // we own lock
+    if (do_redraw)
+    {
+        glutSetWindow(mainWindow);
+        glutPostRedisplay();
+        pixels = (GLubyte *)realloc(pixels, format_nchannels * sizeof(GLubyte) * width * height);
+        glReadPixels(0, 0, width, height, FORMAT, GL_UNSIGNED_BYTE, pixels);
+        do_redraw=0;
+    }
+
+    // tell server thread it can use pixels now
+    lk.unlock();
+    cv.notify_one();
+}
+
+static void observe_GL(boxbot::ObservationData *odata)
+{
+    // this thread doesn't have access to the render context,
+    // so we need to get the main thread (that created the GL context)
+    // to perform glReadPixels
+
+    // gl thread waiting for do_redraw=1
+    // acquire mutex, notify do_redraw=1
+    {
+        std::lock_guard<std::mutex> lk(mtx);
+        do_redraw=1;
+    }
+    cv.notify_one();
+
+    // wait for GL thread to glReadPixels
+    {
+        std::unique_lock<std::mutex> lk(mtx);
+        cv.wait(lk);
+    }
+
+
+
+    //screenshot_ppm("fubar.ppm", WIDTH, HEIGHT, FORMAT, format_nchannels, &pixels);
+    odata->set_width(width);
+    odata->set_height(height);
+    odata->set_channels(format_nchannels);
+    odata->set_data(pixels, format_nchannels * sizeof(GLubyte) * width * height);
+#if 0
+    // order the data in convenient format
+    for (int i=0; i<width; i++){
+        for (int j=0;j<height;j++){
+            for (int k=0;k<format_nchannels;k++) {
+                int idx = format_nchannels*((height - j - 1) * width + i)+k;
+                //odata->add_float_data((*pixels)[idx]);
+            }
+        }
+    }
+#endif
+}
+
+
+void run_app()
+{
+    sim = new Sim();
+    // example agent
     Agent *agent=makeOctoArmAgent(sim->getWorld(), xform(0,4,0));
     sim->addAgent(agent);
 
     setupGlut();
-
-    // Use a timer to control the frame rate.
+    // timer drives simulation & refresh
+    // TODO - use a different Timer func
     glutTimerFunc(framePeriod, Timer, 0);
 
-    //glClearColor(1.f, 0.f, 0.f, 1.f);
     glutMainLoop();
 
     // clean up sim object
@@ -228,21 +310,30 @@ void run_app()
     free(pixels);
 }
 
-// drive
-using grpc::Server;
-using grpc::ServerBuilder;
+void server_thread()
+{
+    std::string server_address("0.0.0.0:50051");
+    RPCSimImpl service(sim, setupSim, redraw, observe_GL);
+
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    std::cout << "Server listening on " << server_address << std::endl;
+    server->Wait();
+}
+
 void run_server()
 {
     sim = new Sim();
-
     setupGlut();
-    std::string server_address("0.0.0.0:50051");
-    RPCSimImpl service(sim, setupSim, redraw);
 
-    ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
-    std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
-    server->Wait();
+    // server thread drives simulation
+    std::thread t1(server_thread);
+    glutTimerFunc(framePeriod, Timer, 0);
+    glutMainLoop();
+
+    // clean up sim object
+    delete sim;
+    free(pixels);
 }

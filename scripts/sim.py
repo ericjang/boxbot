@@ -9,10 +9,13 @@ from borg import xterm_cmd
 from grpc.beta import implementations
 import ipdb as pdb
 
+import numpy as np
+
+import matplotlib.pyplot as plt
+
 _TIMEOUT_SECONDS = 1
 _stub=None
 
-_xdim=None
 _udim=None
 
 def init(E,host="localhost",port=50051):
@@ -28,18 +31,26 @@ def init(E,host="localhost",port=50051):
 	_stub=boxbot_pb2.beta_create_RPCSim_stub(channel)
 	sp=_stub.init(E, _TIMEOUT_SECONDS)
 
-	_xdim=sp.x_dim
 	_udim=sp.u_dim
 
-	return (sp.x_dim, sp.u_dim)
+	x=np.fromstring(sp.x.data, dtype=np.uint8)
+	x=np.flipud(x.reshape((sp.x.height,sp.x.width,sp.x.channels)))
+	plt.imshow(x)
+	plt.show()
+
+	return ((sp.x.width, sp.x.height, sp.x.channels), sp.u_dim)
 
 def step(u):
 	global _stub
 	cdata=boxbot_pb2.ControlData()
 	cdata.control_data.extend(u)
 	#odata=_stub.step(cdata, _TIMEOUT_SECONDS)
-	odata=_stub.step(cdata,1000)
-	x = odata.data
-	return None
-	# TODO - extract observation numpy array
-	# and return it
+	o=_stub.step(cdata,1000)
+	assert(len(o.data)==o.width*o.height*o.channels)
+	x=np.fromstring(o.data, dtype=np.uint8)
+	#np.save('x.npy',x)
+	x=x.reshape((o.height,o.width,o.channels))
+	x=np.flipud(x)
+	plt.imshow(x)
+	plt.show()
+	return x

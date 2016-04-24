@@ -22,38 +22,10 @@
 Sim::Sim()
 {
     m_globaltime=0.f;
-
-
-//    uint32 flags = 0;
-//    flags += 1			* b2Draw::e_shapeBit;
-//    flags += 1			* b2Draw::e_jointBit;
-//    flags += 1 * b2Draw::e_aabbBit;
-//    flags += 1 * b2Draw::e_pairBit;
-//    flags += 1 * b2Draw::e_centerOfMassBit;
-//    flags += 1 * b2Draw::e_particleBit;
-
-//    m_debugDraw.SetFlags(flags);
-//    m_world->SetDebugDraw(&m_debugDraw);
-
-
     b2Vec2 gravity(0,-9.8);
     m_world=new b2World(gravity);
     makeEnv1(m_world);
 
-
-
-    // make default world
-
-
-    // make agent
-    //Agent * agent = makeOctoArmAgent(m_world, xform(0,4,0));
-    //Agent * agent = makeWalkerAgent(m_world, xform(0,3,0));
-    //Agent *agent = makePolypAgent(m_world, xform(0,0.3, b2_pi/2));
-
-    // make policy
-    //Policy *policy = new TestPolicy(0, agent->getJoints().size());
-    //Policy *policy = new RPCPolicy(0, agent->getJoints().size(),grpc::CreateChannel("localhost:50051",grpc::InsecureChannelCredentials()));
-    //agent->setPolicy(policy);
 }
 
 Sim::~Sim()

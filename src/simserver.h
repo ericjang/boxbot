@@ -18,9 +18,14 @@ using boxbot::SimParams;
 
 class Sim;
 
+// callback functions
+typedef void (*setup_t)(const ExperimentDef *edef, SimParams *sp);
+typedef void (*redraw_t)();
+typedef void (*observe_t)(ObservationData *odata);
+
 class RPCSimImpl final : public RPCSim::Service {
 public:
-    RPCSimImpl(Sim *sim, void (*f1)(const ExperimentDef *edef), void (*f2)());
+    RPCSimImpl(Sim *sim, setup_t f1, redraw_t f2, observe_t f3);
 
     Status init(grpc::ServerContext *context,
                 const ExperimentDef *request,
@@ -32,10 +37,10 @@ public:
 protected:
     Sim *m_sim;
     // callback fns
-    void (*m_fn_initSim)(const ExperimentDef *edef);
-    void (*m_fn_redraw)();
-    // todo
-    void (*m_observe)();
+    setup_t m_fn_setupSim;
+    redraw_t m_fn_redraw;
+    observe_t m_fn_observe;
+
 };
 
 void run_server();

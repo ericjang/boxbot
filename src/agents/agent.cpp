@@ -10,7 +10,8 @@ Agent::Agent()
 
 Agent::~Agent()
 {
-    delete m_policy;
+    if (m_policy)
+        delete m_policy;
 }
 
 void Agent::step(float t)

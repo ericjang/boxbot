@@ -28,8 +28,8 @@ message ExperimentDef {
 }
 
 message SimParams {
-  int32 x_dim=1;
-  int32 u_dim=2;
+  int32 u_dim=1;
+  ObservationData x = 2;
 }
 
 // gRPC 

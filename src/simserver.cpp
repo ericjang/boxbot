@@ -19,41 +19,34 @@ using boxbot::ExperimentDef;
 using boxbot::SimParams;
 
 
-RPCSimImpl::RPCSimImpl(Sim *sim, void (*f1)(const boxbot::ExperimentDef *), void (*f2)())
-    : m_sim(sim), m_fn_initSim(f1), m_fn_redraw(f2)
+RPCSimImpl::RPCSimImpl(Sim *sim, setup_t f1, redraw_t f2, observe_t f3)
+    : m_sim(sim), m_fn_setupSim(f1), m_fn_redraw(f2), m_fn_observe(f3)
 {
-
 }
+
 
 Status RPCSimImpl::init(ServerContext *context, const ExperimentDef *edef, SimParams *sp)
 {
     std::cout << "received init request" << std::endl;
-    m_fn_initSim(edef);
-
-    // set SimParams
-    sp->set_u_dim(12);
-    // TODO - fixme
-    sp->set_x_dim(100 * 100);
-
+    m_fn_setupSim(edef, sp);
     return Status::OK;
 }
+
 
 Status RPCSimImpl::step(ServerContext *context, const ControlData *cdata, ObservationData *odata)
 {
     // just support the first agent for now
     Agent *agent = m_sim->getAgent(0);
+
+    // set controls and simulate
     agent->applyControls(*cdata);
-    // integrate
     m_sim->step();
 
-    m_fn_redraw();
+    // we can't call fn_redraw
+    //m_fn_redraw();
 
-    // TODO - get back observation
-    // can we just do glReadPixels here?
-    //observe();
-
-    // return back observation image
-    odata->set_float_data(0,0);
+    // fill in observation
+    m_fn_observe(odata);
 
     return Status::OK;
 }
