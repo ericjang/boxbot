@@ -4,8 +4,8 @@
 BoxBot is a C++ framework for embodied robot physics simulation in 2D environments, built on top of the LiquidFun library.
 
 ![BoxBot screenshot 1](http://i.imgur.com/F1ujNPf.png)
-![BoxBot screenshot 2](http://imgur.com/8LzOo7w)
-![BoxBot screenshot 3](http://imgur.com/Fm4OepZ)
+![BoxBot screenshot 2](http://imgur.com/8LzOo7w.png)
+![BoxBot screenshot 3](http://imgur.com/Fm4OepZ.png)
 
 ## Features
 - The `Agent` class represents a robot that can interact with a simulated world. It owns a `Policy` object that takes in observations of the world state and returns controls that the Agent will apply.
