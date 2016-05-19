@@ -20,12 +20,12 @@ class Sim;
 
 // callback functions
 typedef void (*setup_t)(const ExperimentDef *edef, SimParams *sp);
-typedef void (*redraw_t)();
+typedef void (*draw_t)();
 typedef void (*observe_t)(ObservationData *odata);
 
 class RPCSimImpl final : public RPCSim::Service {
 public:
-    RPCSimImpl(Sim *sim, setup_t f1, redraw_t f2, observe_t f3);
+    RPCSimImpl(Sim *sim, setup_t f1, draw_t f2, observe_t f3);
 
     Status init(grpc::ServerContext *context,
                 const ExperimentDef *request,
@@ -38,7 +38,7 @@ protected:
     Sim *m_sim;
     // callback fns
     setup_t m_fn_setupSim;
-    redraw_t m_fn_redraw;
+    draw_t m_fn_draw;
     observe_t m_fn_observe;
 
 };

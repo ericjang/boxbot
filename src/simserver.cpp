@@ -19,8 +19,8 @@ using boxbot::ExperimentDef;
 using boxbot::SimParams;
 
 
-RPCSimImpl::RPCSimImpl(Sim *sim, setup_t f1, redraw_t f2, observe_t f3)
-    : m_sim(sim), m_fn_setupSim(f1), m_fn_redraw(f2), m_fn_observe(f3)
+RPCSimImpl::RPCSimImpl(Sim *sim, setup_t f1, draw_t f2, observe_t f3)
+    : m_sim(sim), m_fn_setupSim(f1), m_fn_draw(f2), m_fn_observe(f3)
 {
 }
 
@@ -38,14 +38,14 @@ Status RPCSimImpl::step(ServerContext *context, const ControlData *cdata, Observ
     // just support the first agent for now
     Agent *agent = m_sim->getAgent(0);
 
-    // set controls and simulate
+    // 1. control
     agent->applyControls(*cdata);
     m_sim->step();
 
-    // we can't call fn_redraw
-    //m_fn_redraw();
+    // 2. draw
+    //m_fn_draw();
 
-    // fill in observation
+    // 3. observe
     m_fn_observe(odata);
 
     return Status::OK;
