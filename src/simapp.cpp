@@ -78,9 +78,7 @@ static void Resize(int32 w, int32 h)
 
 }
 
-// drawGL is the glut display fn, it blocks until allowed to proceed
-// by the server observe_t fn
-// this is horribly hack-y and breaks standalone test policy
+// drawGL is the glut display fn
 static void drawGL()
 {
 
@@ -110,6 +108,8 @@ static void drawGL()
     //lk.unlock();
     cv.notify_one(); // unblock redraw() call
 
+
+#if 0
     // print world step time stats every 600 frames
     static int s_printCount = 0;
     static b2Stat st;
@@ -125,6 +125,7 @@ static void drawGL()
         st.Clear();
         s_printCount++;
     }
+#endif
 
 }
 
@@ -253,15 +254,6 @@ static void redraw()
 
 static void observe_GL(boxbot::ObservationData *odata)
 {
-    //do_draw =1;
-    // wait for drawGL to be triggered
-
-    // tell draw to proceed
-//    {
-//        std::lock_guard<std::mutex> lk(mtx);
-//    }
-//    cv.notify_one();
-
     // wait for GL thread to refresh glReadPixels
     {
         std::unique_lock<std::mutex> lk(mtx);
@@ -322,8 +314,8 @@ void run_server()
 
     // server thread drives simulation
     std::thread t1(server_thread);
-    glutTimerFunc(framePeriod, Timer, 0);
-    //glutIdleFunc(idle);
+    //glutTimerFunc(framePeriod, Timer, 0);
+    glutIdleFunc(idle);
     glutMainLoop();
 
     // clean up sim object

@@ -1,22 +1,19 @@
 # BoxBot Simulator
 ==============
 
-BoxBot is a C++ framework for embodied robot simulation in 2D environments. 
-This is currently a work in progress - not all the functionality is supported yet.
+BoxBot is a C++ framework for embodied robot physics simulation in 2D environments, built on top of the LiquidFun library.
 
-<!-- TODO : handdrawn boxbot here -->
+![BoxBot screenshot 1](http://i.imgur.com/F1ujNPf.png)
+![BoxBot screenshot 2](http://imgur.com/8LzOo7w)
+![BoxBot screenshot 3](http://imgur.com/Fm4OepZ)
 
 ## Features
 - The `Agent` class represents a robot that can interact with a simulated world. It owns a `Policy` object that takes in observations of the world state and returns controls that the Agent will apply.
 - Physics simulation and agent embodiment handled via the LiquidFun simulator (the Agent is just a set of bodies and joints).
-- LiquidFun environment and Agent can be defined via Protobuf and loaded into the simulator.
-- `RPCPolicy` is a `Policy` subclass that computes controls via [gRPC](). Agent observations are serialized into a Protobuf and sent to a Policy Server. The policy server computes controls and sends them back to the agent. This allows us to implement policies in any environment that supports Google protobufs & gPRC : Python + TensorFlow, LuaJIT + Torch, etc.
+- `RPCPolicy` is a `Policy` subclass that computes controls via [gRPC](http://www.grpc.io/). Agent observations are serialized into a Protobuf and sent to a Policy Server. The policy server computes controls and sends them back to the agent. This allows us to implement policies in any environment that supports Google protobufs & gPRC : Python + TensorFlow, LuaJIT + Torch, etc.
 - Python Interface for LiquidFun worlds
 - Simulator can run in real-time with OpenGL debug visualization, or headless mode
 - Cross platform: runs on Windows, Mac OSX, Linux
-
-## Screenshots
-
 
 ## Installation
 
@@ -26,16 +23,8 @@ Prerequisites:
 
 ```bash
 git clone https://github.com/ericjang/boxbot
+qmake && make
 ```
-
-## Simulation File Format
-
-
-```
-$ ./boxbot octopus.proto
-```
-loads the world, the agent, and the policy and runs the simulation.
-
 
 ## License
 
